@@ -16,4 +16,4 @@ export const targetCapacity = (t: Tile) =>
   t?.filters?.dimensions?.dimensionCapacity !== "256gb";
 
 export const targetPrice = (t: Tile) =>
-  Number.parseFloat(t.price.currentPrice.raw_amount) < 1200;
+  Number.parseFloat(t.price.currentPrice.raw_amount) < 1300;
