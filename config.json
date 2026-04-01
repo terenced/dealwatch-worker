@@ -1,0 +1,5 @@
+{
+  "macMini": { "enabled": true, "maxPrice": 1300, "minMemory": "16gb" },
+  "macStudio": { "enabled": true },
+  "macBookPro": { "enabled": false, "maxPrice": 1800 }
+}

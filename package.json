@@ -8,6 +8,10 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev --test-scheduled",
     "start": "wrangler dev",
+    "push-config": "wrangler kv key put --binding KV config --path config.json",
+    "push-config:remote": "wrangler kv key put --binding KV config --path config.json --remote",
+    "enable:remote": "wrangler kv key put --binding KV active true --remote",
+    "disable:remote": "wrangler kv key put --binding KV active false --remote",
     "typegen": "wrangler types",
     "wrangler": "wrangler"
   },
@@ -19,6 +23,8 @@
     "wrangler": "^4.79.0"
   },
   "dependencies": {
+    "@discordjs/rest": "^2.6.1",
+    "discord-api-types": "^0.38.43",
     "linkedom": "^0.16.11"
   }
 }

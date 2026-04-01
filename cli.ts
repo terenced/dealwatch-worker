@@ -1,5 +1,7 @@
 import { parseArgs } from "node:util";
 import { defaultConfig } from "./src/config";
+import { MessageBuilder } from "./src/discord/message-builder";
+import { Webhook } from "./src/discord/webhook";
 import { fetchMacs } from "./src/fetchMac";
 
 const { values } = parseArgs({
@@ -7,6 +9,7 @@ const { values } = parseArgs({
     model: { type: "string", short: "m", multiple: true },
     maxPrice: { type: "string", short: "p" },
     minMemory: { type: "string" },
+    discord: { type: "string", short: "d" },
   },
 });
 
@@ -45,4 +48,23 @@ for (const deal of allDeals) {
   );
   console.log();
   console.log(deal.productDetailsUrl);
+}
+
+if (values.discord && allDeals.length > 0) {
+  const hook = new Webhook(values.discord);
+
+  for (const deal of allDeals) {
+    const embed = new MessageBuilder()
+      .setTitle(deal.title)
+      .setURL(deal.productDetailsUrl)
+      .setColor("#fb31a5")
+      .setText(
+        `${deal.priceStr} - ${deal.tsMemorySize} - ${deal.dimensionCapacity}`,
+      )
+      .setTimestamp();
+
+    await hook.send(embed);
+  }
+
+  console.log(`\nSent ${allDeals.length} deal(s) to Discord.`);
 }

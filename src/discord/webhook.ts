@@ -1,96 +1,40 @@
-// Based off of https://github.com/LilSpoodermann/discord-ts-webhook/
+import { REST } from "@discordjs/rest";
+import { Routes, type RESTPostAPIWebhookWithTokenJSONBody } from "discord-api-types/v10";
+import type { MessageBuilder } from "./message-builder";
 
-import { MessageBuilder, type WebhookPayload } from "./message-builder";
-
-export type WebhookOptions = {
-  url: string;
-  throwErrors?: boolean;
-  retryOnLimit?: boolean;
-};
+function parseWebhookUrl(url: string): { id: string; token: string } {
+  const match = url.match(/\/webhooks\/(\d+)\/(.+)$/);
+  if (!match) throw new Error(`Invalid webhook URL: ${url}`);
+  return { id: match[1], token: match[2] };
+}
 
 export const createHook = (env: Env) => {
   const hookUrl = env.DISCORD_WEBHOOK;
-  if (!hookUrl) throw Error("No discord URL set");
+  if (!hookUrl) throw new Error("No discord URL set");
   return new Webhook(hookUrl);
 };
 
-export default class Webhook {
-  private url: string;
-  private throwErrors?: boolean;
-  private retryOnLimit?: boolean;
-  private payload: any = {};
+export class Webhook {
+  private rest: REST;
+  private id: string;
+  private token: string;
 
-  constructor(options: string | WebhookOptions) {
-    this.payload = {};
-
-    if (typeof options == "string") {
-      this.url = options;
-      this.throwErrors = false;
-      this.retryOnLimit = true;
-    } else {
-      this.url = options.url;
-      this.throwErrors =
-        options.throwErrors == undefined ? true : options.throwErrors;
-      this.retryOnLimit =
-        options.retryOnLimit == undefined ? true : options.retryOnLimit;
-    }
-  }
-
-  setUsername(username: string) {
-    this.payload.username = username;
-
-    return this;
-  }
-
-  setAvatar(avatarURL: string) {
-    this.payload.avatar_url = avatarURL;
-
-    return this;
-  }
-
-  private async post(payload: WebhookPayload) {
-    return await fetch(this.url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+  constructor(url: string) {
+    const { id, token } = parseWebhookUrl(url);
+    this.id = id;
+    this.token = token;
+    this.rest = new REST().setToken("");
   }
 
   async send(content: MessageBuilder | string) {
-    let payload: WebhookPayload;
+    let body: RESTPostAPIWebhookWithTokenJSONBody;
 
     if (typeof content === "string") {
-      payload = new MessageBuilder().setText(content).getJSON();
+      body = { content };
     } else {
-      payload = content.getJSON();
+      body = content.getJSON();
     }
 
-    try {
-      const res = await this.post(payload);
-
-      if (res.status === 430 && this.retryOnLimit) {
-        const body = (await res.json()) as { retry_after: number };
-        const waitUntil = body["retry_after"];
-
-        setTimeout(() => this.post(payload), waitUntil);
-      } else if (res.status != 204) {
-        const text = await res.text();
-        throw new Error(
-          `Error sending webhook: ${res.status} status code. Response: ${text}`,
-        );
-      }
-    } catch (err) {
-      console.error(err);
-      if (this.throwErrors) {
-        const error = isError(err) ? err.message : err;
-        throw new Error(`${error}`);
-      }
-    }
+    await this.rest.post(Routes.webhook(this.id, this.token), { body, auth: false });
   }
-}
-
-function isError(err: Error | unknown): err is Error {
-  return err instanceof Error;
 }
