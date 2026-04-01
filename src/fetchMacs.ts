@@ -36,6 +36,7 @@ export const formatData = (t: Tile) => ({
   price: Number.parseFloat(t?.price?.currentPrice?.raw_amount),
   priceStr: t?.price?.currentPrice?.raw_amount,
   productDetailsUrl: `https://www.apple.com${t?.productDetailsUrl}`,
+  image: t?.image,
 });
 
 export async function fetchMacs(config: Config) {

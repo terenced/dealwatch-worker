@@ -2,7 +2,7 @@ import type { Config } from "./config";
 import { defaultConfig } from "./config";
 import { MessageBuilder } from "./discord/message-builder";
 import { createHook } from "./discord/webhook";
-import { fetchMacs } from "./fetchMac";
+import { fetchMacs } from "./fetchMacs";
 
 async function isActive(env: Env) {
   const activeVal = await env.KV.get("active");

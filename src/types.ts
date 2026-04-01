@@ -32,6 +32,7 @@ export interface Dimensions {
   tsMemorySize?: string;
   dimensionScreensize?: string;
 }
+
 export interface Price {
   priceFeeDisclaimer: string;
   previousPrice?: PreviousPrice;
@@ -52,7 +53,10 @@ export interface Price {
 
 export interface Image {
   scaleFactor: string;
-  srcSet: { src: string };
+  sources: Array<{
+    srcSet: string;
+    type: string;
+  }>;
   attrs: string;
   alt: string;
   width: string;

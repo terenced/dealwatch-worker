@@ -2,7 +2,7 @@ import { parseArgs } from "node:util";
 import { defaultConfig } from "./src/config";
 import { MessageBuilder } from "./src/discord/message-builder";
 import { Webhook } from "./src/discord/webhook";
-import { fetchMacs } from "./src/fetchMac";
+import { fetchMacs } from "./src/fetchMacs";
 
 const { values } = parseArgs({
   options: {
@@ -62,6 +62,9 @@ if (values.discord && allDeals.length > 0) {
         `${deal.priceStr} - ${deal.tsMemorySize} - ${deal.dimensionCapacity}`,
       )
       .setTimestamp();
+
+    const image = deal.image.sources.at(0)?.srcSet ?? "";
+    embed.setImage(image);
 
     await hook.send(embed);
   }
