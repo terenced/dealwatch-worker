@@ -1,10 +1,18 @@
+import type { Config } from "./config";
+import { defaultConfig } from "./config";
 import { MessageBuilder } from "./discord/message-builder";
 import { createHook } from "./discord/webhook";
-import { fetchMinis } from "./fetchData";
+import { fetchMacs } from "./fetchMac";
 
 async function isActive(env: Env) {
   const activeVal = await env.KV.get("active");
   return activeVal === "true";
+}
+
+async function getConfig(env: Env): Promise<Config> {
+  const raw = await env.KV.get("config");
+  if (!raw) return defaultConfig;
+  return JSON.parse(raw) as Config;
 }
 
 export default {
@@ -16,24 +24,27 @@ export default {
     try {
       const active = await isActive(env);
       if (!active) {
+        console.log("not active");
         return;
       }
 
-      const macMinis = await fetchMinis();
+      const config = await getConfig(env);
+      const { macMini, macStudio, macBookPro } = await fetchMacs(config);
+      const allDeals = [...macMini, ...macStudio, ...macBookPro];
 
-      if (macMinis.length === 0) {
+      if (allDeals.length === 0) {
         return;
       }
 
       const hook = createHook(env);
 
-      for (const macMini of macMinis) {
+      for (const deal of allDeals) {
         const embed = new MessageBuilder()
-          .setTitle(macMini.title)
-          .setURL(macMini.productDetailsUrl)
+          .setTitle(deal.title)
+          .setURL(deal.productDetailsUrl)
           .setColor("#fb31a5")
           .setText(
-            `${macMini.priceStr} - ${macMini.tsMemorySize} - ${macMini.dimensionCapacity}`,
+            `${deal.priceStr} - ${deal.tsMemorySize} - ${deal.dimensionCapacity}`,
           )
           .setTimestamp();
 

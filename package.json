@@ -2,17 +2,21 @@
   "name": "dealwatch-worker",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
+    "cli": "tsx cli.ts",
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --test-scheduled",
     "start": "wrangler dev",
     "typegen": "wrangler types",
     "wrangler": "wrangler"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240502.0",
-    "wrangler": "^3.53.1",
-    "typescript": "^5.4.5"
+    "@cloudflare/workers-types": "^4.20260331.1",
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "wrangler": "^4.79.0"
   },
   "dependencies": {
     "linkedom": "^0.16.11"

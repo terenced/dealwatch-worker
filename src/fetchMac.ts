@@ -1,12 +1,13 @@
 import { HTMLScriptElement, parseHTML } from "linkedom";
-import type { ScriptContent, Tile } from "./types";
+import type { Config } from "./config";
 import {
+  isMacBookBro,
   isMacMini,
-  isM2,
-  targetCapacity,
-  targetPrice,
-  targetMemory,
+  isMacStudio,
+  meetsMemory,
+  meetsPrice,
 } from "./filters";
+import type { ScriptContent, Tile } from "./types";
 
 export async function fetchPageData() {
   const url = "https://www.apple.com/ca/shop/refurbished/mac/mac-mini";
@@ -22,6 +23,9 @@ export async function fetchPageData() {
     ?.replace("window.REFURB_GRID_BOOTSTRAP =", "")
     ?.replace(";", "");
 
+  if (!scriptContent) {
+    return null;
+  }
   const data = JSON.parse(scriptContent) as unknown as ScriptContent;
   return data;
 }
@@ -34,14 +38,33 @@ export const formatData = (t: Tile) => ({
   productDetailsUrl: `https://www.apple.com${t?.productDetailsUrl}`,
 });
 
-export async function fetchMinis() {
+export async function fetchMacs(config: Config) {
   const data = await fetchPageData();
+  const tiles = data?.tiles ?? [];
 
-  return data?.tiles
-    .filter(isMacMini)
-    .filter(isM2)
-    .filter(targetCapacity)
-    .filter(targetMemory)
-    .filter(targetPrice)
-    .map(formatData);
+  const macMini = config.macMini.enabled
+    ? tiles
+        .filter(isMacMini)
+        .filter(meetsMemory(config.macMini))
+        .filter(meetsPrice(config.macMini))
+        .map(formatData)
+    : [];
+
+  const macStudio = config.macStudio.enabled
+    ? tiles
+        .filter(isMacStudio)
+        .filter(meetsMemory(config.macStudio))
+        .filter(meetsPrice(config.macStudio))
+        .map(formatData)
+    : [];
+
+  const macBookPro = config.macBookPro.enabled
+    ? tiles
+        .filter(isMacBookBro)
+        .filter(meetsMemory(config.macBookPro))
+        .filter(meetsPrice(config.macBookPro))
+        .map(formatData)
+    : [];
+
+  return { macMini, macStudio, macBookPro };
 }
